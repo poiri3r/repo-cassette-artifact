@@ -1,0 +1,5 @@
+name: Replace job log
+description: Replace this job's Results log with the Repo Cassette payload
+runs:
+  using: node24
+  main: index.js
