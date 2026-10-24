@@ -1,0 +1,8 @@
+name: Upload raw payload
+description: Upload one unarchived artifact for Repo Cassette
+outputs:
+  artifact_id:
+    description: Created artifact ID
+runs:
+  using: node24
+  main: index.js
