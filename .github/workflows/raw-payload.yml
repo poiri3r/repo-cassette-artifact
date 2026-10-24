@@ -1,0 +1,41 @@
+name: Repo Cassette raw payload
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Prepare uploader and payload
+        env:
+          PAYLOAD_B64: H4sIAAAAAAAAA03LQQrCMBBG4auUfx2I62y9gRcoQzqtAzETZtKKlt69CIKuv/d2VHowEm7cdLiSO/fOCJjXUsavGTeN+WcTezZpXbQigSzfZeNp+GQuXe2FAO9kC73ZfMy61o50CdBnZUPaUXSRvxcBtFEnG1crSJilcIoxNtMcncscuW5iWnEcJ2XREpqyAAAA
+        run: |
+          node -e 'require("node:fs").writeFileSync("payload.gz", Buffer.from(process.env.PAYLOAD_B64, "base64"))'
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @actions/artifact@6.3.1
+
+      - name: Upload unarchived payload
+        run: |
+          node --input-type=module <<'NODE'
+          import path from 'node:path';
+          import { DefaultArtifactClient } from '@actions/artifact';
+
+          const root = process.cwd();
+          const result = await new DefaultArtifactClient().uploadArtifact(
+            'payload.gz',
+            [path.join(root, 'payload.gz')],
+            root,
+            { skipArchive: true, retentionDays: 1 },
+          );
+          console.log(`ARTIFACT_ID=${result.id}`);
+          console.log(`ARTIFACT_SHA256=${result.digest}`);
+          NODE
