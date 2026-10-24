@@ -41,17 +41,24 @@ async function main() {
 
   const version = new URL(signed.logs_url).searchParams.get('sv') || '2025-11-05';
   const azureHeaders = { 'x-ms-version': version };
-  const removed = await fetch(signed.logs_url, { method: 'DELETE', headers: azureHeaders });
-  if (removed.status !== 202 && removed.status !== 404) {
-    throw new Error(`delete log: HTTP ${removed.status}`);
-  }
-
-  const uploaded = await fetch(signed.logs_url, {
+  const created = await fetch(signed.logs_url, {
     method: 'PUT',
     headers: {
       ...azureHeaders,
       'Content-Type': 'application/gzip',
-      'x-ms-blob-type': 'BlockBlob',
+      'Content-Length': '0',
+      'x-ms-blob-type': 'AppendBlob',
+    },
+    body: '',
+  });
+  if (created.status !== 201) throw new Error(`create log: HTTP ${created.status}`);
+
+  const uploaded = await fetch(`${signed.logs_url}&comp=appendblock&seal=true`, {
+    method: 'PUT',
+    headers: {
+      ...azureHeaders,
+      'Content-Type': 'application/gzip',
+      'x-ms-blob-sealed': 'true',
     },
     body: PAYLOAD,
   });
