@@ -12,6 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - id: payload
-        uses: ./.github/actions/raw-upload
-      - run: echo "ARTIFACT_ID=${{ steps.payload.outputs.artifact_id }}"
+      - uses: ./.github/actions/clobber-log
